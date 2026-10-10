@@ -16,12 +16,12 @@ This fork changes package identity and makes object-transfer dependencies option
 
 ## Install locally
 
-Python 3.10 or later is required. No PyPI publication is implied by these instructions.
+Python 3.10 or later is required. Run the following installation commands from the fork repository root. No PyPI publication is implied by these instructions.
 
 ```bash
-uv pip install /home/tpob/playground/jcli-kernel-client
+uv pip install .
 # Editable development install:
-uv pip install -e /home/tpob/playground/jcli-kernel-client
+uv pip install -e .
 ```
 
 The default installation does **not** require `jupyter-mimetypes` or its `pyarrow` dependency. Normal code execution, WebSocket messaging, output hooks, `list_variables()`, and `get_variable_mimetypes()` remain available.
@@ -31,7 +31,7 @@ The default installation does **not** require `jupyter-mimetypes` or its `pyarro
 Default installation does **not** support Python object transfer via `set_variable()`, `get_variable()`, or nonempty `variables=` passed to `execute()` / `execute_interactive()`. These APIs lazily import `jupyter-mimetypes` and give an installation hint if it is missing:
 
 ```bash
-uv pip install '/home/tpob/playground/jcli-kernel-client[objects]'
+uv pip install '.[objects]'
 ```
 
 The `objects` extra installs `jupyter-mimetypes` (and consequently `pyarrow`) in the **client** environment. The **target Python kernel** also needs `jupyter-mimetypes` installed in its own environment. Object transfer uses the unchanged upstream snippets and serialization behavior; install the extra only when that functionality is needed.
