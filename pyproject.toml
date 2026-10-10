@@ -3,7 +3,7 @@
 # BSD 3-Clause License
 
 [build-system]
-requires = ["hatchling~=1.21"]
+requires = ["hatchling~=1.32"]
 build-backend = "hatchling.build"
 
 [project]
@@ -25,9 +25,9 @@ classifiers = [
 ]
 dependencies = [
   "jupyter_core",
-  "jupyter_client>=8.6.3",
+  "jupyter_client>=8.10.0",
   "requests",
-  "traitlets>=5.3",
+  "traitlets>=5.16.1",
   "typing-extensions",
   "websocket-client",
 ]
@@ -40,26 +40,26 @@ konsole = [
   "jupyter_console",
 ]
 kaggle = [
-  "kaggle>=1.6",
+  "kaggle>=1.7.4.5",
 ]
 test = [
   "ipykernel",
   "jupyter_server>=2.10,<3",
   "numpy",
   "pandas",
-  "pytest>=7.0",
+  "pytest>=9.1.1",
   "pytest-asyncio",
   "pytest-cov",
   "pytest-timeout",
 ]
 lint = [
   "pre_commit",
-  "mdformat>0.7",
-  "mdformat-gfm>=0.3.5",
+  "mdformat>=1.0.0",
+  "mdformat-gfm>=1.0.0",
   "ruff"
 ]
 typing = [
-  "mypy>=0.990"
+  "mypy>=2.4.0"
 ]
 
 [project.scripts]
@@ -140,12 +140,12 @@ dev = [
     {include-group = "test"}
 ]
 test = [
-    "ipykernel>=6.31.0",
+    "ipykernel>=7.3.0",
     "jupyter-server>=2.17.0",
-    "numpy>=2.0.2",
+    "numpy>=2.2.6",
     "pandas>=2.3.3",
     "pytest>=8.4.2",
-    "pytest-asyncio>=1.2.0",
-    "pytest-cov>=7.0.0",
+    "pytest-asyncio>=1.4.0",
+    "pytest-cov>=7.1.0",
     "pytest-timeout>=2.4.0",
 ]
