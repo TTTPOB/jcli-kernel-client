@@ -43,7 +43,11 @@ kaggle = [
   "kaggle>=1.6",
 ]
 test = [
-  "ipykernel",
+  # Python 3.10 uses 6.31: 7.3.0 has the shell/ZMQ wake-up regression (#1554).
+  # The fix (#1529) ships in 7.4, which requires Python >=3.11.
+  # https://github.com/ipython/ipykernel/issues/1554
+  "ipykernel>=6.31,<7; python_version < '3.11'",
+  "ipykernel>=7.4; python_version >= '3.11'",
   "jupyter_server>=2.10,<3",
   "numpy",
   "pandas",
@@ -140,7 +144,9 @@ dev = [
     {include-group = "test"}
 ]
 test = [
-    "ipykernel>=6.31.0",
+    # Keep the test-server compatibility policy in sync with the test extra above.
+    "ipykernel>=6.31,<7; python_version < '3.11'",
+    "ipykernel>=7.4; python_version >= '3.11'",
     "jupyter-server>=2.17.0",
     "numpy>=2.0.2",
     "pandas>=2.3.3",

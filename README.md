@@ -65,6 +65,12 @@ with KernelClient(server_url="http://localhost:8888", token="MY_TOKEN") as kerne
 
 The server URL/token and kernel lifecycle semantics are unchanged from upstream. Existing consumers must change imports from `jupyter_kernel_client` to `jcli_kernel_client`; there is no compatibility alias.
 
+## Known server compatibility
+
+An external server running ipykernel 7.3.0 can strand the first shell request after a new WebSocket connection; resending code on that connection does not resolve it. This is the server-side ROUTER wake-up bug documented in [ipykernel #1554](https://github.com/ipython/ipykernel/issues/1554) and fixed by [PR #1529](https://github.com/ipython/ipykernel/pull/1529), included in ipykernel 7.4.0.
+
+The fixed 7.4.0 release requires Python 3.11 or later; no fixed 7.x release supports Python 3.10. Both test dependency entry points therefore use stable ipykernel `>=6.31,<7` on Python 3.10 and `>=7.4` on Python 3.11+. These versions configure the local test server only: ipykernel is not a runtime dependency of this client, and the client does not install or downgrade kernels on external servers.
+
 ## Development and validation
 
 The original Hatchling/pytest/uv toolchain is retained. Use a dedicated environment in this repository, not jcli's environment.
