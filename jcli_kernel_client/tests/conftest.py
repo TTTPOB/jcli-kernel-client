@@ -74,6 +74,11 @@ def jupyter_server(tmp_path: Path) -> t.Generator[tuple[str, str], t.Any, t.Any]
             except TimeoutExpired:
                 if jp_server.poll() is None:
                     jp_server.terminate()
+                try:
+                    jp_server.wait(timeout=5)
+                except TimeoutExpired:
+                    jp_server.kill()
+                    jp_server.wait()
     try:
         print_stream(out.read())
     except io.UnsupportedOperation:
