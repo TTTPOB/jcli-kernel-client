@@ -1,22 +1,31 @@
-name: Build
+name: Tests
 
 on:
   push:
+    branches: [main]
   pull_request:
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.13"]
+    env:
+      UV_PYTHON: ${{ matrix.python-version }}
     steps:
       - uses: actions/checkout@v5
       - uses: astral-sh/setup-uv@v6
+      - name: Install Python
+        run: uv python install "${{ matrix.python-version }}"
       - name: Install default client and test dependencies
-        run: uv sync
+        run: uv sync --group test
       - name: Test default client
-        run: uv run python -m pytest jcli_kernel_client/tests -k "not set_variable_and_get_variable and not set_variables_on_execute"
+        run: uv run --group test python -m pytest jcli_kernel_client/tests -k "not set_variable_and_get_variable and not set_variables_on_execute"
       - name: Install optional object transfer
-        run: uv sync --extra objects
+        run: uv sync --group test --extra objects
       - name: Test object transfer
-        run: uv run --extra objects python -m pytest jcli_kernel_client/tests/test_client.py -k "set_variable_and_get_variable or set_variables_on_execute"
+        run: uv run --group test --extra objects python -m pytest jcli_kernel_client/tests -k "set_variable_and_get_variable or set_variables_on_execute"
       - name: Build distributions
         run: uv build

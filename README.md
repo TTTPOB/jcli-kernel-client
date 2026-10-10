@@ -6,15 +6,25 @@
 
 # jcli-kernel-client
 
-A small, independent fork of [Datalayer's jupyter-kernel-client](https://github.com/datalayer/jupyter-kernel-client), for jcli's HTTP/WebSocket kernel execution. Distribution: `jcli-kernel-client`; Python namespace: `jcli_kernel_client`; initial fork version: `0.1.0`.
+A small, independent fork of [Datalayer's jupyter-kernel-client](https://github.com/datalayer/jupyter-kernel-client), for jcli's HTTP/WebSocket kernel execution. Distribution: `jcli-kernel-client`; Python namespace: `jcli_kernel_client`.
 
 ## Source and scope
 
 The baseline is upstream **0.15.0**, commit [`02acbe69699759c737383d0e5d710c7816ed5f3b`](https://github.com/datalayer/jupyter-kernel-client/commit/02acbe69699759c737383d0e5d710c7816ed5f3b). Upstream has no 0.15.0 Git tag. Its version-file commit matches the Python sources in the 0.15.0 PyPI wheel used by jcli. The upstream Git history is retained; `upstream` points at the official repository.
 
-This fork changes package identity and makes object-transfer dependencies optional. It retains the existing transport, execution, output hooks, snippets, and APIs; it does not add transport features or deeply trim the client. Inherited Colab/Kaggle support remains but has not been validated against those external services. Upstream's documentation site and publishing workflows are removed to avoid claiming this fork is the official project or publishing to its targets. This repository does not automatically publish releases.
+This fork changes package identity and makes object-transfer dependencies optional. It retains the existing transport, execution, output hooks, snippets, and APIs; it does not add transport features or deeply trim the client. Inherited Colab/Kaggle support remains but has not been validated against those external services. Upstream's documentation site and publishing workflows are removed to avoid claiming this fork is the official project or publishing to its targets.
 
-## Install locally
+## Install
+
+Fork source: [TTTPOB/jcli-kernel-client](https://github.com/TTTPOB/jcli-kernel-client). After the first release is available on PyPI:
+
+```bash
+uv pip install jcli-kernel-client
+# Optional object transfer:
+uv pip install 'jcli-kernel-client[objects]'
+```
+
+### Install from a local checkout
 
 Python 3.10 or later is required. Run the following installation commands from the fork repository root. No PyPI publication is implied by these instructions.
 
@@ -65,11 +75,19 @@ uv sync
 uv run python -m pytest jcli_kernel_client/tests -k 'not set_variable_and_get_variable and not set_variables_on_execute'
 # Original object-transfer assertions, with the optional dependency installed:
 uv sync --extra objects
-uv run --extra objects python -m pytest jcli_kernel_client/tests/test_client.py -k 'set_variable_and_get_variable or set_variables_on_execute'
+uv run --extra objects python -m pytest jcli_kernel_client/tests -k 'set_variable_and_get_variable or set_variables_on_execute'
 uv build
 ```
 
 Integration tests start a real local Jupyter Server and kernels; they require local sockets and processes. New boundary tests import the real package in a subprocess, execute through that server, and check missing-dependency errors, rather than substituting mock-call assertions. The historical upstream changelog is retained as history, not as this fork's release history.
+
+## Release
+
+1. Push the release commit to `main` and require its Tests workflow to pass on Python 3.10 and 3.13.
+2. Create and push a lightweight `v<version>` tag matching the single version source in `jcli_kernel_client/__version__.py`.
+3. The tag-only release workflow verifies the version, builds the wheel and sdist, publishes via PyPI trusted publishing, and attaches both artifacts to a GitHub release.
+
+The PyPI publisher is configured for `TTTPOB/jcli-kernel-client`, workflow `release.yml`, and GitHub environment `pypi`. No upstream publication credentials are used.
 
 ## License
 
