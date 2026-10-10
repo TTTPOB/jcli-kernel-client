@@ -4,250 +4,73 @@
   ~ BSD 3-Clause License
 -->
 
-[![Datalayer](https://assets.datalayer.tech/datalayer-25.svg)](https://datalayer.io)
+# jcli-kernel-client
 
-[![Become a Sponsor](https://img.shields.io/static/v1?label=Become%20a%20Sponsor&message=%E2%9D%A4&logo=GitHub&style=flat&color=1ABC9C)](https://github.com/sponsors/datalayer)
+A small, independent fork of [Datalayer's jupyter-kernel-client](https://github.com/datalayer/jupyter-kernel-client), for jcli's HTTP/WebSocket kernel execution. Distribution: `jcli-kernel-client`; Python namespace: `jcli_kernel_client`; initial fork version: `0.1.0`.
 
-# 🪐 Jupyter Kernel Client
+## Source and scope
 
-> Jupyter Kernel Client through HTTP and WebSocket
+The baseline is upstream **0.15.0**, commit [`02acbe69699759c737383d0e5d710c7816ed5f3b`](https://github.com/datalayer/jupyter-kernel-client/commit/02acbe69699759c737383d0e5d710c7816ed5f3b). Upstream has no 0.15.0 Git tag. Its version-file commit matches the Python sources in the 0.15.0 PyPI wheel used by jcli. The upstream Git history is retained; `upstream` points at the official repository.
 
-[![Github Actions Status](https://github.com/datalayer/jupyter-kernel-client/workflows/Build/badge.svg)](https://github.com/datalayer/jupyter-kernel-client/actions/workflows/build.yml)
-[![PyPI - Version](https://img.shields.io/pypi/v/jupyter-kernel-client)](https://pypi.org/project/jupyter-kernel-client)
+This fork changes package identity and makes object-transfer dependencies optional. It retains the existing transport, execution, output hooks, snippets, and APIs; it does not add transport features or deeply trim the client. Inherited Colab/Kaggle support remains but has not been validated against those external services. Upstream's documentation site and publishing workflows are removed to avoid claiming this fork is the official project or publishing to its targets. This repository does not automatically publish releases.
 
-`Jupyter Kernel Client` allows you to connect to live Jupyter Kernels through HTTP and WebSocket.
+## Install locally
 
-> A `Kernel` is the process responsible to execute the notebook code.
-
-`Jupyter Kernel Client` also provides a easy to use interactive Konsole (console for **K**ernels aka REPL, Read-Evaluate-Print-Loop).
-
-To install the library, run the following command.
+Python 3.10 or later is required. No PyPI publication is implied by these instructions.
 
 ```bash
-pip install jupyter_kernel_client
+uv pip install /home/tpob/playground/jcli-kernel-client
+# Editable development install:
+uv pip install -e /home/tpob/playground/jcli-kernel-client
 ```
 
-## Jupyter Server
+The default installation does **not** require `jupyter-mimetypes` or its `pyarrow` dependency. Normal code execution, WebSocket messaging, output hooks, `list_variables()`, and `get_variable_mimetypes()` remain available.
 
-Check you have a Jupyter Server with ipykernel running somewhere. You can install those packages with the following command.
+### Optional object transfer
+
+Default installation does **not** support Python object transfer via `set_variable()`, `get_variable()`, or nonempty `variables=` passed to `execute()` / `execute_interactive()`. These APIs lazily import `jupyter-mimetypes` and give an installation hint if it is missing:
 
 ```bash
-pip install jupyter-server ipykernel
+uv pip install '/home/tpob/playground/jcli-kernel-client[objects]'
 ```
 
-1. Start a Jupyter Server.
+The `objects` extra installs `jupyter-mimetypes` (and consequently `pyarrow`) in the **client** environment. The **target Python kernel** also needs `jupyter-mimetypes` installed in its own environment. Object transfer uses the unchanged upstream snippets and serialization behavior; install the extra only when that functionality is needed.
 
-```bash
-# make jupyter-server
-jupyter server --port 8888 --ServerApp.port_retries 0 --IdentityProvider.token MY_TOKEN
-```
+The optional console is installed with `[konsole]` and launched as `jcli-konsole` (renamed to avoid colliding with the upstream console command).
 
-2. Launch a IPython REPL in a terminal with `ipython` (or `jupyter console`). Execute the following snippet (update the server_url and token if needed).
+## Execute code
 
-```py
-import os
+Start a Jupyter Server with an IPython kernel separately, then:
 
-from platform import node
-from jupyter_kernel_client import KernelClient
+```python
+from jcli_kernel_client import KernelClient
 
 with KernelClient(server_url="http://localhost:8888", token="MY_TOKEN") as kernel:
-    code = """import os
-from platform import node
-print(f"Hey {os.environ.get('USER', 'John Smith')} from {node()}.")
-"""
-    reply = kernel.execute(code)
-    print(reply)
-    assert reply["execution_count"] == 1
-    assert reply["outputs"] == [
-        {
-            "output_type": "stream",
-            "name": "stdout",
-            "text": f"Hey {os.environ.get('USER', 'John Smith')} from {node()}.\n",
-        }
-    ]
+    reply = kernel.execute("print('hello')")
     assert reply["status"] == "ok"
+    assert reply["outputs"] == [
+        {"output_type": "stream", "name": "stdout", "text": "hello\n"}
+    ]
 ```
 
-Check the response.
+The server URL/token and kernel lifecycle semantics are unchanged from upstream. Existing consumers must change imports from `jupyter_kernel_client` to `jcli_kernel_client`; there is no compatibility alias.
 
-```json
-{"execution_count": 1, "outputs": [{"output_type": "stream", "name": "stdout", "text": "Hey echarles from eric.\n"}], "status": "ok"}
-```
+## Development and validation
 
-Instead of using the kernel client as context manager, you can call the `start()` and `stop()` methods.
-
-```py
-from jupyter_kernel_client import KernelClient
-
-kernel = KernelClient(server_url="http://localhost:8888", token="MY_TOKEN")
-kernel.start()
-reply = kernel.execute(code)
-print(reply)
-kernel.stop()
-```
-
-To connect to an existing Jupyter Kernel, first start JupyterLab, open a Notebook with a Kernel and take not of the `Kernel ID`.
-
-> TODO: Document how to get the `Kernel ID`.
+The original Hatchling/pytest/uv toolchain is retained. Use a dedicated environment in this repository, not jcli's environment.
 
 ```bash
-make jupyterlab
+uv sync
+# Default-install behavior and upstream tests not requiring object transfer:
+uv run python -m pytest jcli_kernel_client/tests -k 'not set_variable_and_get_variable and not set_variables_on_execute'
+# Original object-transfer assertions, with the optional dependency installed:
+uv sync --extra objects
+uv run --extra objects python -m pytest jcli_kernel_client/tests/test_client.py -k 'set_variable_and_get_variable or set_variables_on_execute'
+uv build
 ```
 
-You can now connect to the existing Kernel and run code (do not invoke `stop`).
+Integration tests start a real local Jupyter Server and kernels; they require local sockets and processes. New boundary tests import the real package in a subprocess, execute through that server, and check missing-dependency errors, rather than substituting mock-call assertions. The historical upstream changelog is retained as history, not as this fork's release history.
 
-```py
-from jupyter_kernel_client import KernelClient
+## License
 
-kernel = KernelClient(server_url="http://localhost:8888", kernel_id="83ef59b7-9c78-40bd-8cc2-4447635e7d0b", token="MY_TOKEN")
-kernel.start()
-reply = kernel.execute("x=1")
-print(reply)
-```
-
-## Kaggle Kernel
-
-Kaggle supports both batch execution and interactive kernel connections from code.
-
-- Detailed guide: [Kaggle docs](docs/docs/kaggle.mdx)
-- Includes auth modes, channels URL retrieval, explicit and parsed connection
-  options, batch execution from zero, accelerator matrix, and operational notes.
-
-Quick batch example:
-
-```py
-from jupyter_kernel_client import KaggleKernelExecutor
-
-executor = KaggleKernelExecutor()
-result = executor.execute(
-    "print('hello from kaggle')",
-    title="jkc-demo",
-#    accelerator="NvidiaTeslaT4",
-    wait=True,
-)
-print(result)
-print(result.status)
-print(result.stdout)
-print(result.kernel_reply)
-print(result.to_kernel_reply())
-```
-
-`KaggleExecutionResult` includes normalized helpers:
-
-- `stdout` / `stderr` convenience properties
-- `kernel_reply` (same normalized Jupyter-like payload as `to_kernel_reply()`)
-- auto-generated notebook cell IDs in batch submissions to match modern notebook metadata expectations
-
-Quick interactive example:
-
-```py
-from jupyter_kernel_client import KaggleKernelClient
-
-channels_url = (
-    "wss://kkb-production.jupyter-proxy.kaggle.net/k/12345678/eyJhbGci.../proxy"
-    "/api/kernels/11e073f0-e82d-4029-be8d-3918f7ed1a9e/channels?session_id=..."
-)
-
-with KaggleKernelClient.from_channels_url(channels_url, token=None) as kernel:
-    reply = kernel.execute("x = 1 + 1; print(x)")
-    print(reply)
-```
-
-## Google Colab Kernel
-
-Google Colab exposes a Jupyter-compatible kernel behind an authenticating proxy.
-Use `ColabKernelClient` to connect to an already-running Colab runtime.
-
-- Detailed guide: [Google Colab docs](docs/docs/google-colab.mdx)
-- Includes explicit-value mode, channels URL mode, parser helpers, auth behavior,
-  and channels URL retrieval steps.
-
-Quick example:
-
-```py
-from jupyter_kernel_client import ColabKernelClient
-
-channels_url = (
-    "wss://<colab-host>/api/kernels/<kernel_id>/channels"
-    "?session_id=<...>&colab-runtime-proxy-token=<proxy_token>&colab-client-agent=web"
-)
-
-with ColabKernelClient.from_channels_url(channels_url) as kernel:
-    reply = kernel.execute("x = 1 + 1; print(x)")
-    print(reply)
-```
-
-### Jupyter Konsole aka Console for Kernels
-
-This package can be used to open a Jupyter Console to a Jupyter Kernel 🐣.
-
-1. Install the optional dependencies.
-
-```bash
-pip install jupyter-kernel-client[konsole]
-```
-
-2. Start a Jupyter Server.
-
-```bash
-# make jupyter-server
-jupyter server --port 8888 --ServerApp.port_retries 0 --IdentityProvider.token MY_TOKEN
-```
-
-3. Start the konsole and execute code.
-
-```bash
-# make jupyter-konsole
-jupyter konsole --url http://localhost:8888 --token MY_TOKEN
-```
-
-```bash
-[KonsoleApp] KernelHttpManager created a new kernel:...
-Jupyter Konsole...
-
-In [1]: 1+1
-2
-```
-
-## Uninstall
-
-To remove the library, execute the following command.
-
-```bash
-pip uninstall jupyter_kernel_client
-```
-
-## Contributing
-
-### Development install
-
-```bash
-# Clone the repo to your local environment
-# Change directory to the jupyter_kernel_client directory
-# Install package in development mode, this will automatically enable the server extension.
-pip install -e ".[konsole,test,lint,typing]"
-```
-
-### Running Tests
-
-Install dependencies.
-
-```bash
-pip install -e ".[test]"
-```
-
-Run the python tests.
-
-```bash
-pytest
-```
-
-### Development uninstall
-
-```bash
-pip uninstall jupyter_kernel_client
-```
-
-### Packaging the library
-
-See [RELEASE](RELEASE.md)
+BSD 3-Clause. The complete upstream `LICENSE` and existing Datalayer copyright notices are retained. This fork is not endorsed by Datalayer.

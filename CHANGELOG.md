@@ -4,7 +4,11 @@
   ~ BSD 3-Clause License
 -->
 
-# Changelog
+# Upstream changelog (historical)
+
+The entries below belong to datalayer/jupyter-kernel-client before this fork.
+They are not releases of jcli-kernel-client. Fork 0.1.0 renames the package and
+makes object transfer optional; see README.md for the current scope.
 
 ## Unreleased
 

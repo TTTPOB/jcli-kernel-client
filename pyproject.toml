@@ -7,7 +7,7 @@ requires = ["hatchling~=1.21"]
 build-backend = "hatchling.build"
 
 [project]
-name = "jupyter_kernel_client"
+name = "jcli-kernel-client"
 authors = [
   { name = "Datalayer", email = "info@datalayer.io" }
 ]
@@ -26,7 +26,6 @@ classifiers = [
 dependencies = [
   "jupyter_core",
   "jupyter_client>=8.6.3",
-  "jupyter-mimetypes",
   "requests",
   "traitlets>=5.3",
   "typing-extensions",
@@ -34,6 +33,9 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+objects = [
+  "jupyter-mimetypes>=0.2.0",
+]
 konsole = [
   "jupyter_console",
 ]
@@ -61,16 +63,16 @@ typing = [
 ]
 
 [project.scripts]
-jupyter-konsole = "jupyter_kernel_client.konsoleapp:main"
+jcli-konsole = "jcli_kernel_client.konsoleapp:main"
 
 [project.license]
 file = "LICENSE"
 
 [project.urls]
-Home = "https://github.com/datalayer/jupyter-kernel-client"
+Upstream = "https://github.com/datalayer/jupyter-kernel-client"
 
 [tool.hatch.version]
-path = "jupyter_kernel_client/__version__.py"
+path = "jcli_kernel_client/__version__.py"
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
@@ -127,7 +129,7 @@ ignore = [
 
 [tool.ruff.lint.per-file-ignores]
 # S101 Use of `assert` detected
-"jupyter_kernel_client/tests/*" = ["S101"]
+"jcli_kernel_client/tests/*" = ["S101"]
 
 [[tool.uv.index]]
 url = "https://pypi.org/simple"
