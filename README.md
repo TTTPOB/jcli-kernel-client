@@ -16,7 +16,7 @@ This fork changes package identity and makes object-transfer dependencies option
 
 ## Install
 
-Fork source: [TTTPOB/jcli-kernel-client](https://github.com/TTTPOB/jcli-kernel-client). After the first release is available on PyPI:
+Fork source: [TTTPOB/jcli-kernel-client](https://github.com/TTTPOB/jcli-kernel-client). Install from PyPI:
 
 ```bash
 uv pip install jcli-kernel-client
